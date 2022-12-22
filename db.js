@@ -1,20 +1,32 @@
-var multer = require('multer')
+//Xử lí dưới database
+const sql = require('mssql/msnodesqlv8')
 
-//Khai báo nơi lưu trữ file
-var storage = multer.diskStorage({
-    destination: function(req, file, cb){
-        cb(null, './uploads') //Kiểm tra
+const config = {
+    server: 'DESKTOP-46SSF4D\\SQLEXPRESS',
+    database: 'dMulter',
+    driver: 'msnodesqlv8',
+    pool: {
+        max: 10,
+        min: 0,
+        idleTimeoutMillis: 30000
+     },
+    options: {
+        trustedConnection: true,
     },
-    filename: function(req, file, cb){
-        cb(null, file.originalname) //Kiểm tra
-    }
+    requestTimeout: 300000,
+}
+
+sql.on('error', err => {
+    console.log(err.message)
 })
 
-//Khai báo biến upload
-var upload = multer({storage: storage})
 
-//Khai báo tải file lên server
-app.post('/multer', upload.single('file'), function(req, res){
-    console.log(req.file)
-    res.send("upload file thanh cong")
-})
+sql.connect(config).then(pool => {
+    // Query   
+    return pool.request()
+        .query('select * from [demoUpload]')
+}).then(result => {
+    console.dir(result.recordset[0])
+}).catch(err => {
+    console.log(err)
+});
